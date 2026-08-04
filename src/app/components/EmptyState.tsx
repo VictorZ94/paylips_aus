@@ -4,11 +4,13 @@ import { memo } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
+import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 import CloudUploadRoundedIcon from "@mui/icons-material/CloudUploadRounded";
 import { palette } from "../theme";
 
-interface EmptyStateProps {
-  onPick: () => void;
+interface DashboardEmptyStateProps {
+  onUseSample: () => void;
+  onUpload: () => void;
 }
 
 const SAMPLE_PREVIEW = [
@@ -17,7 +19,10 @@ const SAMPLE_PREVIEW = [
   ["06/04/2026", "12/04/2026", "14.800", "$588.75", "$5.00", "97", "16.5", "$496.75"],
 ];
 
-export const EmptyState = memo(function EmptyState({ onPick }: EmptyStateProps) {
+export const DashboardEmptyState = memo(function DashboardEmptyState({
+  onUseSample,
+  onUpload,
+}: DashboardEmptyStateProps) {
   return (
     <Box
       sx={{
@@ -57,14 +62,14 @@ export const EmptyState = memo(function EmptyState({ onPick }: EmptyStateProps) 
               mb: 2,
             }}
           >
-            Drop your payslip CSV
+            No data yet
           </Typography>
           <Typography
             component="h1"
             sx={{
               fontWeight: 700,
               letterSpacing: "-0.04em",
-              fontSize: "clamp(2rem, 4.5vw, 3.4rem)",
+              fontSize: "clamp(2rem, 4.5vw, 3.2rem)",
               lineHeight: 1.02,
               color: palette.text,
             }}
@@ -89,19 +94,61 @@ export const EmptyState = memo(function EmptyState({ onPick }: EmptyStateProps) 
               lineHeight: 1.55,
             }}
           >
-            Upload a CSV exported from your payroll system and watch your income,
-            tax withheld and super accrue in real time. Nothing leaves your
-            device — it&apos;s all stored locally in your browser.
+            Drop a CSV on the upload page to see your income, tax withheld and
+            super in real time. Or start with our sample data to explore the
+            dashboard. Nothing leaves your device.
           </Typography>
-          <Stack direction="row" spacing={1.5} sx={{ mt: 3 }}>
+          <Stack
+            direction="row"
+            spacing={1.5}
+            sx={{ mt: 3, flexWrap: "wrap", rowGap: 1.5 }}
+          >
             <Box
               role="button"
               tabIndex={0}
-              onClick={onPick}
+              onClick={onUseSample}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
-                  onPick();
+                  onUseSample();
+                }
+              }}
+              sx={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 1,
+                px: 2,
+                py: 1,
+                borderRadius: 2,
+                border: `1px solid ${palette.borderHi}`,
+                color: palette.text,
+                backgroundColor: palette.surfaceLow,
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: "pointer",
+                outline: "none",
+                transition: "all 160ms ease",
+                "&:hover": {
+                  borderColor: palette.mint,
+                  color: palette.mint,
+                  backgroundColor: palette.mintWash,
+                },
+                "&:focus-visible": {
+                  boxShadow: `0 0 0 3px ${palette.mint}33`,
+                },
+              }}
+            >
+              <DescriptionRoundedIcon fontSize="small" />
+              Use sample data
+            </Box>
+            <Box
+              role="button"
+              tabIndex={0}
+              onClick={onUpload}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onUpload();
                 }
               }}
               sx={{
@@ -128,7 +175,7 @@ export const EmptyState = memo(function EmptyState({ onPick }: EmptyStateProps) 
               }}
             >
               <CloudUploadRoundedIcon fontSize="small" />
-              Choose a CSV file
+              Upload a CSV
             </Box>
             <Box
               sx={{
@@ -137,13 +184,12 @@ export const EmptyState = memo(function EmptyState({ onPick }: EmptyStateProps) 
                 px: 2,
                 py: 1,
                 borderRadius: 2,
-                border: `1px solid ${palette.border}`,
                 color: palette.textMute,
                 fontSize: 13,
                 fontWeight: 500,
               }}
             >
-              or just drop it anywhere
+              or just drop it on /upload
             </Box>
           </Stack>
         </Box>

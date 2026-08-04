@@ -1,14 +1,8 @@
 "use client";
 
-import {
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  useTransition,
-} from "react";
+import { memo, useCallback, useMemo, useState, useSyncExternalStore, useTransition } from "react";
 import { useDeferredValue } from "react";
+import { useRouter } from "next/navigation";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -22,15 +16,14 @@ import DialogActions from "@mui/material/DialogActions";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import FileDownloadRoundedIcon from "@mui/icons-material/FileDownloadRounded";
+import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
+import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
 import { palette } from "./theme";
-import { Brand } from "./components/Brand";
 import { FilterBar } from "./components/FilterBar";
 import { KpiRow } from "./components/KpiRow";
 import { BreakdownCard, EarningsChartCard } from "./components/ChartCards";
 import { PayslipTable } from "./components/PayslipTable";
-import { EmptyState } from "./components/EmptyState";
-import { UploadCard } from "./components/UploadCard";
-import { mergeByPeriod } from "../lib/csv";
+import { DashboardEmptyState } from "./components/EmptyState";
 import {
   commitSnapshot,
   getServerSnapshot,
@@ -40,7 +33,8 @@ import {
 } from "../lib/storage";
 import { computeSummary, filterPayslips } from "../lib/summary";
 import { fmtRange, isoToday } from "../lib/format";
-import type { Filters, Payslip } from "../lib/types";
+import { SAMPLE_PAYSLIPS } from "../lib/sample";
+import type { Filters } from "../lib/types";
 
 const DEFAULT_FILTERS: Filters = {
   preset: "all",
@@ -48,7 +42,9 @@ const DEFAULT_FILTERS: Filters = {
   end: "",
 };
 
-export default function Dashboard() {
+function DashboardView() {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
   const payslips = useSyncExternalStore(
     subscribe,
     getSnapshot,
@@ -56,8 +52,6 @@ export default function Dashboard() {
   );
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [confirmClear, setConfirmClear] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [, startTransition] = useTransition();
 
   const deferredFilters = useDeferredValue(filters);
   const filtered = useMemo(
@@ -73,18 +67,18 @@ export default function Dashboard() {
     startTransition(() => setFilters(next));
   }, []);
 
-  const onMerge = useCallback(
-    (rows: Payslip[]) => {
-      const { merged } = mergeByPeriod(payslips, rows);
-      commitSnapshot(merged);
-    },
-    [payslips],
-  );
-
   const onClearAll = useCallback(() => {
     resetSnapshot();
     setConfirmClear(false);
   }, []);
+
+  const onUseSample = useCallback(() => {
+    commitSnapshot(SAMPLE_PAYSLIPS);
+  }, []);
+
+  const onGoUpload = useCallback(() => {
+    router.push("/upload");
+  }, [router]);
 
   const onExportCsv = useCallback(() => {
     if (filtered.length === 0) return;
@@ -122,37 +116,12 @@ export default function Dashboard() {
     URL.revokeObjectURL(url);
   }, [filtered]);
 
-  const onUploadClick = useCallback(() => {
-    fileInputRef.current?.click();
-  }, []);
-
-  const onUploadFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    const file = files[0];
-    e.target.value = "";
-    const { parseCsv, isLikelyCsv } = await import("../lib/csv");
-    if (!isLikelyCsv(file)) {
-      window.alert("PDF parsing is coming soon. Please upload a CSV file for now.");
-      return;
-    }
-    const text = await file.text();
-    const { rows } = parseCsv(text);
-    if (rows.length === 0) {
-      window.alert("No rows found. Make sure the CSV has a header row.");
-      return;
-    }
-    const { merged } = mergeByPeriod(payslips, rows);
-    commitSnapshot(merged);
-  }, [payslips]);
-
   const isEmpty = payslips.length === 0;
 
   return (
     <Box
       sx={{
         position: "relative",
-        minHeight: "100vh",
         maxWidth: 1280,
         mx: "auto",
         px: { xs: 2, md: 4 },
@@ -166,13 +135,22 @@ export default function Dashboard() {
         direction="row"
         sx={{
           alignItems: "center",
-          justifyContent: "space-between",
+          justifyContent: "flex-end",
           flexWrap: "wrap",
-          rowGap: 2,
+          rowGap: 1,
+          minHeight: 6,
         }}
       >
-        <Brand />
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          <Tooltip title="Open upload page">
+            <IconButton
+              size="small"
+              onClick={onGoUpload}
+              aria-label="Open upload page"
+            >
+              <OpenInNewRoundedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
           <Tooltip title="Export filtered rows to CSV">
             <span>
               <IconButton
@@ -212,11 +190,39 @@ export default function Dashboard() {
       </Stack>
 
       {isEmpty ? (
-        <EmptyState onPick={onUploadClick} />
+        <DashboardEmptyState onUseSample={onUseSample} onUpload={onGoUpload} />
       ) : (
         <>
-          <Box className="fade-up">
-            <UploadCard onMerged={onMerge} />
+          <Box
+            className="fade-up"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: 1.5,
+            }}
+          >
+            <Button
+              onClick={onGoUpload}
+              startIcon={<AutoAwesomeRoundedIcon fontSize="small" />}
+              sx={{
+                color: palette.textMute,
+                border: `1px solid ${palette.border}`,
+                fontSize: 12,
+                fontWeight: 600,
+                px: 1.5,
+                py: 0.85,
+                borderRadius: 2,
+                "&:hover": {
+                  borderColor: palette.mint,
+                  color: palette.mint,
+                  backgroundColor: palette.mintWash,
+                },
+              }}
+            >
+              Import more payslips
+            </Button>
           </Box>
 
           <Box className="fade-up" sx={{ animationDelay: "60ms" }}>
@@ -279,15 +285,6 @@ export default function Dashboard() {
         </Typography>
       </Box>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".csv,text/csv"
-        onChange={onUploadFile}
-        style={{ display: "none" }}
-        aria-hidden
-      />
-
       <Dialog
         open={confirmClear}
         onClose={() => setConfirmClear(false)}
@@ -323,3 +320,5 @@ export default function Dashboard() {
     </Box>
   );
 }
+
+export default memo(DashboardView);

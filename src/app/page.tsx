@@ -1,5 +1,5 @@
-import Dashboard from "./Dashboard";
+import DashboardView from "./DashboardView";
 
 export default function Page() {
-  return <Dashboard />;
+  return <DashboardView />;
 }

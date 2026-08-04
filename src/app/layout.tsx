@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import InitColorSchemeScript from "@mui/material/InitColorSchemeScript";
 import ThemeRegistry from "./ThemeRegistry";
+import { AppHeader } from "./components/AppHeader";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -37,7 +38,10 @@ export default function RootLayout({
       </head>
       <body>
         <InitColorSchemeScript attribute="class" />
-        <ThemeRegistry>{children}</ThemeRegistry>
+        <ThemeRegistry>
+          <AppHeader />
+          {children}
+        </ThemeRegistry>
       </body>
     </html>
   );
