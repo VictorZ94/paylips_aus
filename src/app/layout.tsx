@@ -1,6 +1,7 @@
+import InitColorSchemeScript from "@mui/material/InitColorSchemeScript";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import InitColorSchemeScript from "@mui/material/InitColorSchemeScript";
+import { AuthProvider } from "../lib/auth-context";
 import ThemeRegistry from "./ThemeRegistry";
 import { AppHeader } from "./components/AppHeader";
 import "./globals.css";
@@ -17,7 +18,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Paylips AUS — Your money, decoded",
-  description: "Upload your payslip CSV and see your income, tax and super at a glance.",
+  description:
+    "Upload your payslip CSV and see your income, tax and super at a glance.",
 };
 
 const BOOT_SCRIPT = `(function(){try{var d=localStorage.getItem('paylips_aus.v1');document.documentElement.dataset.hasData=d&&d!=='[]'?'1':'0';}catch(e){}})();`;
@@ -33,14 +35,18 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: BOOT_SCRIPT }} />
-      </head>
+      {/* <head>
+        <Script id="boot-script" strategy="beforeInteractive">
+          {BOOT_SCRIPT}
+        </Script>
+      </head> */}
       <body>
         <InitColorSchemeScript attribute="class" />
         <ThemeRegistry>
-          <AppHeader />
-          {children}
+          <AuthProvider>
+            <AppHeader />
+            {children}
+          </AuthProvider>
         </ThemeRegistry>
       </body>
     </html>

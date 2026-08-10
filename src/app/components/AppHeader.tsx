@@ -4,9 +4,14 @@ import { memo } from "react";
 import Box from "@mui/material/Box";
 import { Brand } from "./Brand";
 import { NavigationTabs } from "./NavigationTabs";
+import { UserMenu } from "./UserMenu";
 import { palette } from "../theme";
+import { useAuth } from "../../lib/auth-context";
 
 const AppHeaderInner = function AppHeader() {
+  const { status } = useAuth();
+  const signedIn = status === "authenticated";
+
   return (
     <Box
       component="header"
@@ -32,7 +37,18 @@ const AppHeaderInner = function AppHeader() {
         }}
       >
         <Brand />
-        <NavigationTabs />
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            flex: 1,
+            justifyContent: "flex-end",
+          }}
+        >
+          {signedIn && <NavigationTabs />}
+          {signedIn && <UserMenu />}
+        </Box>
       </Box>
     </Box>
   );
