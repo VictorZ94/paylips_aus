@@ -17,13 +17,3 @@ export function isFirebaseConfigured(): boolean {
     firebaseConfig.appId,
   );
 }
-
-console.log(
-  "Firebase Config:",
-  Boolean(
-    firebaseConfig.apiKey &&
-    firebaseConfig.authDomain &&
-    firebaseConfig.projectId &&
-    firebaseConfig.appId,
-  ),
-);

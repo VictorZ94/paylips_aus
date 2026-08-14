@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback } from "react";
+import { memo, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -15,14 +15,34 @@ import type { ParseStats } from "./ParsePreview";
 interface ConfirmedCardProps {
   stats: ParseStats;
   onReplace: () => void;
+  commitAction?: (rows: ParseStats["rows"]) => Promise<void> | void;
+  ctaLabel?: string;
+  helperText?: string;
 }
 
-const ConfirmedCardInner = function ConfirmedCard({ stats, onReplace }: ConfirmedCardProps) {
+const ConfirmedCardInner = function ConfirmedCard({
+  stats,
+  onReplace,
+  commitAction,
+  ctaLabel,
+  helperText,
+}: ConfirmedCardProps) {
   const router = useRouter();
+  const [busy, setBusy] = useState(false);
 
-  const onViewDashboard = useCallback(() => {
+  const onViewDashboard = useCallback(async () => {
+    if (commitAction) {
+      setBusy(true);
+      try {
+        await commitAction(stats.rows);
+      } finally {
+        setBusy(false);
+      }
+    }
     router.push("/");
-  }, [router]);
+  }, [commitAction, router, stats.rows]);
+
+  const label = ctaLabel ?? (commitAction ? "Add to dashboard" : "View dashboard");
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -44,8 +64,8 @@ const ConfirmedCardInner = function ConfirmedCard({ stats, onReplace }: Confirme
             maxWidth: 480,
           }}
         >
-          The data is saved locally on this device. Drop another file to merge
-          more periods, or jump to the dashboard to see trends.
+          {helperText ??
+            "The data is saved locally on this device. Drop another file to merge more periods, or jump to the dashboard to see trends."}
         </Typography>
         <Stack direction="row" sx={{ gap: 1.25, alignItems: "center" }}>
           <Button
@@ -67,6 +87,7 @@ const ConfirmedCardInner = function ConfirmedCard({ stats, onReplace }: Confirme
           <Button
             onClick={onViewDashboard}
             variant="contained"
+            disabled={busy}
             endIcon={<ArrowForwardRoundedIcon fontSize="small" />}
             sx={{
               backgroundColor: palette.mint,
@@ -74,9 +95,10 @@ const ConfirmedCardInner = function ConfirmedCard({ stats, onReplace }: Confirme
               fontWeight: 700,
               px: 2.5,
               "&:hover": { backgroundColor: palette.mintDim },
+              "&.Mui-disabled": { backgroundColor: palette.surfaceHi, color: palette.textDim },
             }}
           >
-            View dashboard
+            {busy ? "Saving…" : label}
           </Button>
         </Stack>
       </Stack>

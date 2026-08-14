@@ -14,9 +14,9 @@ interface DashboardEmptyStateProps {
 }
 
 const SAMPLE_PREVIEW = [
-  ["20/04/2026", "26/04/2026", "3.4833", "$137.51", "$1.25", "22", "16.5", "$116.76"],
-  ["13/04/2026", "19/04/2026", "6.0000", "$236.40", "$1.25", "36", "16.5", "$201.65"],
-  ["06/04/2026", "12/04/2026", "14.800", "$588.75", "$5.00", "97", "16.5", "$496.75"],
+  ["01/06/2026", "07/06/2026", "17.0", "$622.37", "$3.75", "$132.00", "$74.23", "$490.37"],
+  ["25/05/2026", "31/05/2026", "10.5", "$416.85", "$5.00", "$66.00", "$68.78", "$355.85"],
+  ["18/05/2026", "24/05/2026", "13.5", "$534.45", "$5.00", "$89.00", "$88.18", "$450.45"],
 ];
 
 export const DashboardEmptyState = memo(function DashboardEmptyState({
@@ -189,7 +189,7 @@ export const DashboardEmptyState = memo(function DashboardEmptyState({
                 fontWeight: 500,
               }}
             >
-              or just drop it on /upload
+              or just drop it on /ai-upload
             </Box>
           </Stack>
         </Box>
@@ -229,7 +229,7 @@ export const DashboardEmptyState = memo(function DashboardEmptyState({
             }}
           >
             <Box sx={{ color: palette.text, mb: 0.5 }}>
-              start,end,hours,earns,allowances,tax,super,total
+              start,end,hours,earns,laundry,tax,super,total
             </Box>
             {SAMPLE_PREVIEW.map((row, idx) => (
               <Box key={idx} sx={{ color: palette.mint, opacity: 0.85 - idx * 0.18 }}>

@@ -13,8 +13,6 @@ const AuthGateInner = function AuthGate({ children }: AuthGateProps) {
   const router = useRouter();
   const { status } = useAuth();
 
-  console.log("AuthGate status:", status);
-
   useEffect(() => {
     if (status === "unauthenticated") {
       router.replace("/login");

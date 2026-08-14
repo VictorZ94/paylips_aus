@@ -165,7 +165,7 @@ export const KpiRow = memo(function KpiRow({
     [weekly],
   );
   const superSpark = useMemo(
-    () => weekly.map((w) => (w.earns * w.superRate) / 100),
+    () => weekly.map((w) => w.super),
     [weekly],
   );
 
@@ -212,7 +212,7 @@ export const KpiRow = memo(function KpiRow({
         variant="super"
         label="Super accrued"
         value={fmtAud(summary.superTotal)}
-        sub="11% statutory baseline applied"
+        sub="contributions in window"
         spark={superSpark}
         sparkColor={palette.amber}
       />

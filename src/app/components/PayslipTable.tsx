@@ -25,7 +25,7 @@ type SortKey =
   | "period"
   | "hours"
   | "earns"
-  | "allowances"
+  | "laundry"
   | "tax"
   | "super"
   | "total";
@@ -46,11 +46,11 @@ interface ColDef {
 
 const COLUMNS: ColDef[] = [
   { key: "period", label: "Period", align: "left", numeric: false },
-  { key: "hours", label: "Hours", align: "right", numeric: true, hint: "T/H per week" },
+  { key: "hours", label: "Hours", align: "right", numeric: true, hint: "Total hours worked" },
   { key: "earns", label: "Gross", align: "right", numeric: true },
-  { key: "allowances", label: "Allow.", align: "right", numeric: true },
+  { key: "laundry", label: "Laundry", align: "right", numeric: true },
   { key: "tax", label: "Tax", align: "right", numeric: true, hint: "Tax withheld" },
-  { key: "super", label: "Super %", align: "right", numeric: true },
+  { key: "super", label: "Super", align: "right", numeric: true },
   { key: "total", label: "Net", align: "right", numeric: true, hint: "Total earned" },
 ];
 
@@ -60,15 +60,15 @@ function compare(a: Payslip, b: Payslip, key: SortKey, dir: SortDir): number {
     case "period":
       return sign * a.startDate.localeCompare(b.startDate);
     case "hours":
-      return sign * (a.hoursPerWeek - b.hoursPerWeek);
+      return sign * (a.hoursWorked - b.hoursWorked);
     case "earns":
       return sign * (a.earns - b.earns);
-    case "allowances":
-      return sign * (a.allowances - b.allowances);
+    case "laundry":
+      return sign * (a.laundryAllowances - b.laundryAllowances);
     case "tax":
       return sign * (a.taxWithheld - b.taxWithheld);
     case "super":
-      return sign * (a.superRate - b.superRate);
+      return sign * (a.super - b.super);
     case "total":
       return sign * (a.totalEarned - b.totalEarned);
   }
@@ -103,15 +103,15 @@ function CellValue({
         </Box>
       );
     case "hours":
-      return <>{fmtNum4(row.hoursPerWeek)}</>;
+      return <>{fmtNum4(row.hoursWorked)}</>;
     case "earns":
       return <>{fmtAud(row.earns)}</>;
-    case "allowances":
-      return <>{row.allowances === 0 ? "—" : fmtAud(row.allowances)}</>;
+    case "laundry":
+      return <>{row.laundryAllowances === 0 ? "—" : fmtAud(row.laundryAllowances)}</>;
     case "tax":
       return <>{fmtAud(row.taxWithheld)}</>;
     case "super":
-      return <>{row.superRate.toFixed(1)}%</>;
+      return <>{fmtAud(row.super)}</>;
     case "total":
       return (
         <Box sx={{ color: palette.mint, fontWeight: 600 }}>
@@ -145,17 +145,19 @@ const PayslipTableInner = function PayslipTable({ rows }: PayslipTableProps) {
   const totals = useMemo(() => {
     let hours = 0;
     let earns = 0;
-    let allow = 0;
+    let laundry = 0;
     let tax = 0;
+    let sup = 0;
     let total = 0;
     for (const r of rows) {
-      hours += r.hoursPerWeek;
+      hours += r.hoursWorked;
       earns += r.earns;
-      allow += r.allowances;
+      laundry += r.laundryAllowances;
       tax += r.taxWithheld;
+      sup += r.super;
       total += r.totalEarned;
     }
-    return { hours, earns, allow, tax, total };
+    return { hours, earns, laundry, tax, sup, total };
   }, [rows]);
 
   if (rows.length === 0) {
@@ -247,8 +249,7 @@ const PayslipTableInner = function PayslipTable({ rows }: PayslipTableProps) {
                         : "inherit",
                       fontVariantNumeric: c.numeric ? "tabular-nums" : "normal",
                       whiteSpace: "nowrap",
-                      contentVisibility:
-                        idx > 8 ? ("auto" as unknown as "auto") : "visible",
+                      contentVisibility: "auto",
                     }}
                   >
                     <CellValue row={row} keyName={c.key} />
@@ -285,8 +286,9 @@ const PayslipTableInner = function PayslipTable({ rows }: PayslipTableProps) {
           <Stack direction="row" spacing={3} sx={{ flexWrap: "wrap", rowGap: 0.5 }}>
             <SummaryStat label="Hours" value={fmtNum2(totals.hours)} />
             <SummaryStat label="Gross" value={fmtAudWhole(totals.earns)} />
-            <SummaryStat label="Allow." value={fmtAudWhole(totals.allow)} />
+            <SummaryStat label="Laundry" value={fmtAudWhole(totals.laundry)} />
             <SummaryStat label="Tax" value={fmtAudWhole(totals.tax)} />
+            <SummaryStat label="Super" value={fmtAudWhole(totals.sup)} />
             <SummaryStat label="Net" value={fmtAudWhole(totals.total)} accent />
           </Stack>
         </Stack>

@@ -51,7 +51,6 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
 
-  console.log("useAuth context:", ctx);
   if (!ctx) {
     throw new Error("useAuth must be used inside <AuthProvider>");
   }

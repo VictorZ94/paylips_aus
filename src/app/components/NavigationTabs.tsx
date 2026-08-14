@@ -14,7 +14,7 @@ interface TabDef {
 
 const TABS: TabDef[] = [
   { href: "/", label: "Dashboard", match: (p) => p === "/" },
-  { href: "/upload", label: "Upload", match: (p) => p.startsWith("/upload") },
+  { href: "/ai-upload", label: "Upload", match: (p) => p.startsWith("/ai-upload") },
 ];
 
 const NavigationTabsInner = function NavigationTabs() {

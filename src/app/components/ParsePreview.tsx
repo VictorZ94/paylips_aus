@@ -13,11 +13,11 @@ import type { Payslip } from "../../lib/types";
 export const DETECTED_COLUMNS: { key: keyof Payslip | "start" | "end"; label: string }[] = [
   { key: "start", label: "start date" },
   { key: "end", label: "end date" },
-  { key: "hoursPerWeek", label: "hours per week" },
+  { key: "hoursWorked", label: "hours worked" },
   { key: "earns", label: "earns" },
-  { key: "allowances", label: "allowances" },
+  { key: "laundryAllowances", label: "laundry allowances" },
   { key: "taxWithheld", label: "tax withheld" },
-  { key: "superRate", label: "super rate" },
+  { key: "super", label: "super" },
   { key: "totalEarned", label: "total earned" },
 ];
 
@@ -44,14 +44,16 @@ const ParsePreviewInner = function ParsePreview({ stats, live }: ParsePreviewPro
     let hours = 0;
     let taxWithheld = 0;
     let superTotal = 0;
+    let allowancesTotal = 0;
     for (const r of rows) {
       totalEarned += r.totalEarned;
-      hours += r.hoursPerWeek;
+      hours += r.hoursWorked;
       taxWithheld += r.taxWithheld;
-      superTotal += (r.earns * r.superRate) / 100;
+      superTotal += r.super;
+      allowancesTotal += r.laundryAllowances;
     }
     const taxPct = totalEarned > 0 ? (taxWithheld / totalEarned) * 100 : 0;
-    return { totalEarned, hours, taxWithheld, superTotal, taxPct };
+    return { totalEarned, hours, taxWithheld, superTotal, allowancesTotal, taxPct };
   }, [rows]);
 
   const detected = useMemo(() => {
@@ -60,11 +62,11 @@ const ParsePreviewInner = function ParsePreview({ stats, live }: ParsePreviewPro
       const r = rows[0];
       if (r.startDate) present.add("start");
       if (r.endDate) present.add("end");
-      if (rows.some((x) => x.hoursPerWeek > 0)) present.add("hoursPerWeek");
+      if (rows.some((x) => x.hoursWorked > 0)) present.add("hoursWorked");
       if (rows.some((x) => x.earns > 0)) present.add("earns");
-      if (rows.some((x) => x.allowances > 0)) present.add("allowances");
+      if (rows.some((x) => x.laundryAllowances > 0)) present.add("laundryAllowances");
       if (rows.some((x) => x.taxWithheld > 0)) present.add("taxWithheld");
-      if (rows.some((x) => x.superRate > 0)) present.add("superRate");
+      if (rows.some((x) => x.super > 0)) present.add("super");
       if (rows.some((x) => x.totalEarned > 0)) present.add("totalEarned");
     }
     return present;
@@ -257,7 +259,7 @@ const ParsePreviewInner = function ParsePreview({ stats, live }: ParsePreviewPro
             <span style={{ textAlign: "right" }}>Hours</span>
             <span style={{ textAlign: "right" }}>Earns</span>
             <span style={{ textAlign: "right" }}>Tax</span>
-            <span style={{ textAlign: "right" }}>Super%</span>
+            <span style={{ textAlign: "right" }}>Super</span>
             <span style={{ textAlign: "right" }}>Net</span>
           </Box>
           {preview.map((r, idx) => (
@@ -277,10 +279,10 @@ const ParsePreviewInner = function ParsePreview({ stats, live }: ParsePreviewPro
               <span>
                 {fmtDateShort(r.startDate)} → {fmtDateShort(r.endDate)}
               </span>
-              <span style={{ textAlign: "right" }}>{fmtNum4(r.hoursPerWeek)}</span>
+              <span style={{ textAlign: "right" }}>{fmtNum4(r.hoursWorked)}</span>
               <span style={{ textAlign: "right" }}>{fmtAudWhole(r.earns)}</span>
               <span style={{ textAlign: "right" }}>{fmtAudWhole(r.taxWithheld)}</span>
-              <span style={{ textAlign: "right" }}>{r.superRate.toFixed(1)}</span>
+              <span style={{ textAlign: "right" }}>{fmtAudWhole(r.super)}</span>
               <span style={{ textAlign: "right", color: palette.mint, fontWeight: 600 }}>
                 {fmtAudWhole(r.totalEarned)}
               </span>

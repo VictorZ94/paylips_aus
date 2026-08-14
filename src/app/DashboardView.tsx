@@ -77,7 +77,7 @@ function DashboardView() {
   }, []);
 
   const onGoUpload = useCallback(() => {
-    router.push("/upload");
+    router.push("/ai-upload");
   }, [router]);
 
   const onExportCsv = useCallback(() => {
@@ -85,22 +85,22 @@ function DashboardView() {
     const header = [
       "start",
       "end",
-      "hoursPerWeek",
+      "hoursWorked",
       "earns",
-      "allowances",
+      "laundryAllowances",
       "taxWithheld",
-      "superRate",
+      "super",
       "totalEarned",
     ];
     const rows = filtered.map((r) =>
       [
         r.startDate,
         r.endDate,
-        r.hoursPerWeek,
+        r.hoursWorked,
         r.earns,
-        r.allowances,
+        r.laundryAllowances,
         r.taxWithheld,
-        r.superRate,
+        r.super,
         r.totalEarned,
       ].join(","),
     );

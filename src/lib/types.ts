@@ -2,11 +2,11 @@ export interface Payslip {
   id: string;
   startDate: string;
   endDate: string;
-  hoursPerWeek: number;
+  hoursWorked: number;
   earns: number;
-  allowances: number;
+  laundryAllowances: number;
   taxWithheld: number;
-  superRate: number;
+  super: number;
   totalEarned: number;
 }
 
@@ -19,7 +19,7 @@ export interface Filters {
 }
 
 export interface BreakdownSlice {
-  label: "Net" | "Tax" | "Super" | "Allowances";
+  label: "Net" | "Tax" | "Super" | "Laundry";
   value: number;
   color: string;
 }
@@ -32,8 +32,8 @@ export interface WeeklyPoint {
   tax: number;
   hours: number;
   earns: number;
-  allowances: number;
-  superRate: number;
+  laundryAllowances: number;
+  super: number;
 }
 
 export interface Summary {

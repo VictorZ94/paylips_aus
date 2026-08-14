@@ -1,69 +1,81 @@
+"use client";
+
+import { useSyncExternalStore } from "react";
 import type { Payslip } from "./types";
 import { SAMPLE_PAYSLIPS } from "./sample";
+import { indexedDb } from "./indexeddb";
 
-const KEY = "paylips_aus.v1";
 const listeners = new Set<() => void>();
 let cache: Payslip[] | null = null;
+let inflight: Promise<void> | null = null;
 
-function readStorageRaw(): Payslip[] | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return null;
-    const valid = parsed.every(
-      (r) =>
-        r &&
-        typeof r === "object" &&
-        typeof r.id === "string" &&
-        typeof r.startDate === "string" &&
-        typeof r.endDate === "string",
-    );
-    return valid ? (parsed as Payslip[]) : null;
-  } catch {
-    return null;
-  }
+function notify(): void {
+  listeners.forEach((l) => l());
 }
 
-export function subscribe(notify: () => void): () => void {
-  listeners.add(notify);
+async function ensureLoaded(): Promise<void> {
+  if (cache) return;
+  if (inflight) return inflight;
+  inflight = indexedDb
+    .getAll()
+    .then((rows) => {
+      cache = rows.length > 0 ? rows : SAMPLE_PAYSLIPS;
+      notify();
+    })
+    .catch(() => {
+      cache = SAMPLE_PAYSLIPS;
+      notify();
+    })
+    .finally(() => {
+      inflight = null;
+    });
+  return inflight;
+}
+
+function getCachedSnapshot(): Payslip[] {
+  if (cache) return cache;
+  void ensureLoaded();
+  return SAMPLE_PAYSLIPS;
+}
+
+export function subscribe(notifyFn: () => void): () => void {
+  listeners.add(notifyFn);
+  if (!cache) {
+    void ensureLoaded();
+  }
   return () => {
-    listeners.delete(notify);
+    listeners.delete(notifyFn);
   };
 }
 
 export function getSnapshot(): Payslip[] {
-  if (cache === null) {
-    cache = readStorageRaw() ?? SAMPLE_PAYSLIPS;
-  }
-  return cache;
+  return getCachedSnapshot();
 }
 
 export function getServerSnapshot(): Payslip[] {
   return SAMPLE_PAYSLIPS;
 }
 
-export function commitSnapshot(rows: Payslip[]): void {
+export async function commitSnapshot(rows: Payslip[]): Promise<void> {
   cache = rows;
-  if (typeof window !== "undefined") {
-    try {
-      window.localStorage.setItem(KEY, JSON.stringify(rows));
-    } catch {
-      // quota exceeded — ignore
-    }
+  notify();
+  try {
+    await indexedDb.putAll(rows);
+  } catch {
+    // ignore — already updated in cache
   }
-  listeners.forEach((l) => l());
 }
 
-export function resetSnapshot(): void {
+export async function resetSnapshot(): Promise<void> {
   cache = [];
-  if (typeof window !== "undefined") {
-    try {
-      window.localStorage.removeItem(KEY);
-    } catch {
-      // ignore
-    }
+  notify();
+  try {
+    await indexedDb.clear();
+  } catch {
+    // ignore
   }
-  listeners.forEach((l) => l());
+}
+
+export function usePayslips(): Payslip[] {
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

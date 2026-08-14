@@ -71,22 +71,21 @@ export function computeSummary(
 
   const weekly: WeeklyPoint[] = [];
   for (const p of filtered) {
-    const superDollar = (p.earns * p.superRate) / 100;
     totalEarned += p.totalEarned;
-    hours += p.hoursPerWeek;
+    hours += p.hoursWorked;
     taxWithheld += p.taxWithheld;
-    superTotal += superDollar;
-    allowancesTotal += p.allowances;
+    superTotal += p.super;
+    allowancesTotal += p.laundryAllowances;
     weekly.push({
       start: p.startDate,
       end: p.endDate,
       totalEarned: p.totalEarned,
       net: p.totalEarned,
       tax: p.taxWithheld,
-      hours: p.hoursPerWeek,
+      hours: p.hoursWorked,
       earns: p.earns,
-      allowances: p.allowances,
-      superRate: p.superRate,
+      laundryAllowances: p.laundryAllowances,
+      super: p.super,
     });
   }
 
@@ -119,7 +118,7 @@ export function computeSummary(
     { label: "Net", value: totalEarned, color: palette.mint },
     { label: "Tax", value: taxWithheld, color: palette.coral },
     { label: "Super", value: superTotal, color: palette.amber },
-    { label: "Allowances", value: allowancesTotal, color: palette.mintDim },
+    { label: "Laundry", value: allowancesTotal, color: palette.mintDim },
   ];
 
   return {
