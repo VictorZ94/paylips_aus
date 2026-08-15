@@ -2,7 +2,6 @@
 
 import { useSyncExternalStore } from "react";
 import type { Payslip } from "./types";
-import { SAMPLE_PAYSLIPS } from "./sample";
 import { indexedDb } from "./indexeddb";
 
 const listeners = new Set<() => void>();
@@ -14,16 +13,16 @@ function notify(): void {
 }
 
 async function ensureLoaded(): Promise<void> {
-  if (cache) return;
+  if (cache !== null) return;
   if (inflight) return inflight;
   inflight = indexedDb
     .getAll()
     .then((rows) => {
-      cache = rows.length > 0 ? rows : SAMPLE_PAYSLIPS;
+      cache = rows;
       notify();
     })
     .catch(() => {
-      cache = SAMPLE_PAYSLIPS;
+      cache = [];
       notify();
     })
     .finally(() => {
@@ -33,14 +32,16 @@ async function ensureLoaded(): Promise<void> {
 }
 
 function getCachedSnapshot(): Payslip[] {
-  if (cache) return cache;
-  void ensureLoaded();
-  return SAMPLE_PAYSLIPS;
+  if (cache === null) {
+    void ensureLoaded();
+    return [];
+  }
+  return cache;
 }
 
 export function subscribe(notifyFn: () => void): () => void {
   listeners.add(notifyFn);
-  if (!cache) {
+  if (cache === null) {
     void ensureLoaded();
   }
   return () => {
@@ -53,7 +54,7 @@ export function getSnapshot(): Payslip[] {
 }
 
 export function getServerSnapshot(): Payslip[] {
-  return SAMPLE_PAYSLIPS;
+  return [];
 }
 
 export async function commitSnapshot(rows: Payslip[]): Promise<void> {
@@ -62,7 +63,7 @@ export async function commitSnapshot(rows: Payslip[]): Promise<void> {
   try {
     await indexedDb.putAll(rows);
   } catch {
-    // ignore — already updated in cache
+    // cache already updated; IDB write will be retried on next commit
   }
 }
 

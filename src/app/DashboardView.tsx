@@ -25,7 +25,6 @@ import { BreakdownCard, EarningsChartCard } from "./components/ChartCards";
 import { PayslipTable } from "./components/PayslipTable";
 import { DashboardEmptyState } from "./components/EmptyState";
 import {
-  commitSnapshot,
   getServerSnapshot,
   getSnapshot,
   resetSnapshot,
@@ -33,7 +32,6 @@ import {
 } from "../lib/storage";
 import { computeSummary, filterPayslips } from "../lib/summary";
 import { fmtRange, isoToday } from "../lib/format";
-import { SAMPLE_PAYSLIPS } from "../lib/sample";
 import type { Filters } from "../lib/types";
 
 const DEFAULT_FILTERS: Filters = {
@@ -70,10 +68,6 @@ function DashboardView() {
   const onClearAll = useCallback(() => {
     resetSnapshot();
     setConfirmClear(false);
-  }, []);
-
-  const onUseSample = useCallback(() => {
-    commitSnapshot(SAMPLE_PAYSLIPS);
   }, []);
 
   const onGoUpload = useCallback(() => {
@@ -190,7 +184,7 @@ function DashboardView() {
       </Stack>
 
       {isEmpty ? (
-        <DashboardEmptyState onUseSample={onUseSample} onUpload={onGoUpload} />
+        <DashboardEmptyState onUpload={onGoUpload} />
       ) : (
         <>
           <Box

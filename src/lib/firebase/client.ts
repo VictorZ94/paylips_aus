@@ -7,7 +7,7 @@ let app: FirebaseApp | null = null;
 let authInstance: Auth | null = null;
 let dbInstance: Firestore | null = null;
 
-function getFirebaseApp(): FirebaseApp | null {
+export function getFirebaseApp(): FirebaseApp | null {
   if (app) return app;
   if (!firebaseConfig.apiKey || !firebaseConfig.projectId) return null;
   app = getApps().length ? getApp() : initializeApp(firebaseConfig);

@@ -8,6 +8,7 @@ export interface Payslip {
   taxWithheld: number;
   super: number;
   totalEarned: number;
+  pdfUrl: string;
 }
 
 export type FilterPreset = "7d" | "30d" | "ytd" | "all" | "custom";

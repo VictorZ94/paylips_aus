@@ -4,23 +4,31 @@ import { memo } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
-import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
+import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
 import CloudUploadRoundedIcon from "@mui/icons-material/CloudUploadRounded";
+import CloudDoneRoundedIcon from "@mui/icons-material/CloudDoneRounded";
 import { palette } from "../theme";
 
 interface DashboardEmptyStateProps {
-  onUseSample: () => void;
   onUpload: () => void;
 }
 
-const SAMPLE_PREVIEW = [
-  ["01/06/2026", "07/06/2026", "17.0", "$622.37", "$3.75", "$132.00", "$74.23", "$490.37"],
-  ["25/05/2026", "31/05/2026", "10.5", "$416.85", "$5.00", "$66.00", "$68.78", "$355.85"],
-  ["18/05/2026", "24/05/2026", "13.5", "$534.45", "$5.00", "$89.00", "$88.18", "$450.45"],
+const STEPS = [
+  {
+    icon: CloudUploadRoundedIcon,
+    label: "Drop your first PDF on /ai-upload",
+  },
+  {
+    icon: AutoAwesomeRoundedIcon,
+    label: "gemma4:cloud reads each page and returns structured data",
+  },
+  {
+    icon: CloudDoneRoundedIcon,
+    label: "Original PDF is stored in Firebase Storage; rows link back to it",
+  },
 ];
 
 export const DashboardEmptyState = memo(function DashboardEmptyState({
-  onUseSample,
   onUpload,
 }: DashboardEmptyStateProps) {
   return (
@@ -32,7 +40,7 @@ export const DashboardEmptyState = memo(function DashboardEmptyState({
         p: { xs: 4, md: 6 },
         display: "flex",
         flexDirection: "column",
-        gap: 3,
+        gap: 4,
         position: "relative",
         overflow: "hidden",
       }}
@@ -46,198 +54,145 @@ export const DashboardEmptyState = memo(function DashboardEmptyState({
           pointerEvents: "none",
         }}
       />
-      <Stack
-        direction={{ xs: "column", md: "row" }}
-        spacing={4}
-        sx={{ position: "relative", zIndex: 1 }}
-      >
-        <Box sx={{ flex: 1 }}>
-          <Typography
-            sx={{
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.18em",
-              textTransform: "uppercase",
-              color: palette.mint,
-              mb: 2,
-            }}
-          >
-            No data yet
-          </Typography>
-          <Typography
-            component="h1"
-            sx={{
-              fontWeight: 700,
-              letterSpacing: "-0.04em",
-              fontSize: "clamp(2rem, 4.5vw, 3.2rem)",
-              lineHeight: 1.02,
-              color: palette.text,
-            }}
-          >
-            See every dollar,
-            <br />
-            <Box
-              component="span"
-              sx={{ color: palette.mint, textShadow: `0 0 32px ${palette.mint}44` }}
-            >
-              every tax dollar,
-            </Box>
-            <br />
-            every super dollar.
-          </Typography>
-          <Typography
-            sx={{
-              mt: 2,
-              fontSize: 14,
-              color: palette.textMute,
-              maxWidth: 540,
-              lineHeight: 1.55,
-            }}
-          >
-            Drop a CSV on the upload page to see your income, tax withheld and
-            super in real time. Or start with our sample data to explore the
-            dashboard. Nothing leaves your device.
-          </Typography>
-          <Stack
-            direction="row"
-            spacing={1.5}
-            sx={{ mt: 3, flexWrap: "wrap", rowGap: 1.5 }}
-          >
-            <Box
-              role="button"
-              tabIndex={0}
-              onClick={onUseSample}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  onUseSample();
-                }
-              }}
-              sx={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 1,
-                px: 2,
-                py: 1,
-                borderRadius: 2,
-                border: `1px solid ${palette.borderHi}`,
-                color: palette.text,
-                backgroundColor: palette.surfaceLow,
-                fontWeight: 600,
-                fontSize: 13,
-                cursor: "pointer",
-                outline: "none",
-                transition: "all 160ms ease",
-                "&:hover": {
-                  borderColor: palette.mint,
-                  color: palette.mint,
-                  backgroundColor: palette.mintWash,
-                },
-                "&:focus-visible": {
-                  boxShadow: `0 0 0 3px ${palette.mint}33`,
-                },
-              }}
-            >
-              <DescriptionRoundedIcon fontSize="small" />
-              Use sample data
-            </Box>
-            <Box
-              role="button"
-              tabIndex={0}
-              onClick={onUpload}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  onUpload();
-                }
-              }}
-              sx={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 1,
-                px: 2,
-                py: 1,
-                borderRadius: 2,
-                backgroundColor: palette.mint,
-                color: palette.ink,
-                fontWeight: 600,
-                fontSize: 13,
-                cursor: "pointer",
-                outline: "none",
-                transition: "all 160ms ease",
-                "&:hover": {
-                  backgroundColor: palette.mintDim,
-                  transform: "translateY(-1px)",
-                },
-                "&:focus-visible": {
-                  boxShadow: `0 0 0 3px ${palette.mint}33`,
-                },
-              }}
-            >
-              <CloudUploadRoundedIcon fontSize="small" />
-              Upload a CSV
-            </Box>
-            <Box
-              sx={{
-                display: "inline-flex",
-                alignItems: "center",
-                px: 2,
-                py: 1,
-                borderRadius: 2,
-                color: palette.textMute,
-                fontSize: 13,
-                fontWeight: 500,
-              }}
-            >
-              or just drop it on /ai-upload
-            </Box>
-          </Stack>
-        </Box>
-        <Box
+      <Box sx={{ position: "relative", zIndex: 1, maxWidth: 720 }}>
+        <Typography
           sx={{
-            flex: { xs: 1, md: 0 },
-            minWidth: 280,
-            maxWidth: { md: 360 },
-            borderRadius: 3,
-            border: `1px solid ${palette.border}`,
-            backgroundColor: palette.surfaceLow,
-            p: 2,
-            fontFamily:
-              'var(--font-geist-mono), ui-monospace, "SFMono-Regular", Menlo, monospace',
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: palette.mint,
+            mb: 2,
           }}
         >
-          <Typography
-            sx={{
-              fontSize: 10.5,
-              color: palette.textDim,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              fontWeight: 700,
-              mb: 1.5,
-            }}
-          >
-            Expected CSV
-          </Typography>
+          No data yet
+        </Typography>
+        <Typography
+          component="h1"
+          sx={{
+            fontWeight: 700,
+            letterSpacing: "-0.04em",
+            fontSize: "clamp(2rem, 4.5vw, 3.2rem)",
+            lineHeight: 1.05,
+            color: palette.text,
+          }}
+        >
+          Scan your first payslip
           <Box
+            component="span"
             sx={{
-              fontSize: 11,
-              color: palette.textMute,
-              lineHeight: 1.7,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
+              color: palette.mint,
+              textShadow: `0 0 32px ${palette.mint}44`,
             }}
           >
-            <Box sx={{ color: palette.text, mb: 0.5 }}>
-              start,end,hours,earns,laundry,tax,super,total
-            </Box>
-            {SAMPLE_PREVIEW.map((row, idx) => (
-              <Box key={idx} sx={{ color: palette.mint, opacity: 0.85 - idx * 0.18 }}>
-                {row.join(",")}
-              </Box>
-            ))}
+            {" to start."}
           </Box>
+        </Typography>
+        <Typography
+          sx={{
+            mt: 2,
+            fontSize: 14,
+            color: palette.textMute,
+            maxWidth: 600,
+            lineHeight: 1.55,
+          }}
+        >
+          Drop a PDF on the upload page. We render each page to an image, ask
+          gemma4:cloud to extract the rows, store the original PDF in Firebase
+          Storage, and keep a download link with every row.
+        </Typography>
+        <Box
+          role="button"
+          tabIndex={0}
+          onClick={onUpload}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onUpload();
+            }
+          }}
+          sx={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 1,
+            mt: 3,
+            px: 2.5,
+            py: 1.25,
+            borderRadius: 2,
+            backgroundColor: palette.mint,
+            color: palette.ink,
+            fontWeight: 700,
+            fontSize: 13,
+            letterSpacing: "0.02em",
+            cursor: "pointer",
+            outline: "none",
+            transition: "all 160ms ease",
+            "&:hover": {
+              backgroundColor: palette.mintDim,
+              transform: "translateY(-1px)",
+            },
+            "&:focus-visible": {
+              boxShadow: `0 0 0 3px ${palette.mint}33`,
+            },
+          }}
+        >
+          <CloudUploadRoundedIcon fontSize="small" />
+          Scan your first payslip
         </Box>
+      </Box>
+
+      <Stack
+        direction={{ xs: "column", md: "row" }}
+        sx={{ position: "relative", zIndex: 1, gap: 2 }}
+      >
+        {STEPS.map((step, idx) => {
+          const Icon = step.icon;
+          return (
+            <Box
+              key={step.label}
+              sx={{
+                flex: 1,
+                display: "flex",
+                gap: 1.5,
+                alignItems: "flex-start",
+                p: 2,
+                borderRadius: 2,
+                border: `1px solid ${palette.border}`,
+                backgroundColor: palette.surfaceLow,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 1.5,
+                  backgroundColor: palette.mintWash,
+                  color: palette.mint,
+                  display: "grid",
+                  placeItems: "center",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  flexShrink: 0,
+                }}
+              >
+                {idx + 1}
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Icon sx={{ fontSize: 16, color: palette.mint, mb: 0.5 }} />
+                <Typography
+                  sx={{
+                    fontSize: 12.5,
+                    color: palette.text,
+                    lineHeight: 1.45,
+                    fontWeight: 500,
+                  }}
+                >
+                  {step.label}
+                </Typography>
+              </Box>
+            </Box>
+          );
+        })}
       </Stack>
     </Box>
   );

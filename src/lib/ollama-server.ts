@@ -38,6 +38,65 @@ export const PROMPT =
 
 export const DEFAULT_MODEL = "gemma4:cloud";
 
+function extractJsonObject(text: string): unknown {
+  const trimmed = text.trim();
+
+  // 1. Direct parse — happy path
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    // continue
+  }
+
+  // 2. Strip ```json ... ``` / ``` ... ``` code fences
+  const fence = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fence) {
+    try {
+      return JSON.parse(fence[1].trim());
+    } catch {
+      // continue
+    }
+  }
+
+  // 3. Find the first balanced top-level JSON object in the text
+  const start = trimmed.indexOf("{");
+  if (start >= 0) {
+    let depth = 0;
+    let inStr = false;
+    let esc = false;
+    for (let i = start; i < trimmed.length; i++) {
+      const c = trimmed[i];
+      if (inStr) {
+        if (esc) {
+          esc = false;
+        } else if (c === "\\") {
+          esc = true;
+        } else if (c === '"') {
+          inStr = false;
+        }
+      } else {
+        if (c === '"') {
+          inStr = true;
+        } else if (c === "{") {
+          depth++;
+        } else if (c === "}") {
+          depth--;
+          if (depth === 0) {
+            try {
+              return JSON.parse(trimmed.slice(start, i + 1));
+            } catch {
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 4. Couldn't extract — surface the raw text in the error
+  throw new Error(`Model returned non-JSON content: ${trimmed.slice(0, 200)}`);
+}
+
 export interface RawPayslip {
   startDate: string;
   endDate: string;
@@ -78,13 +137,8 @@ export async function extractPayslipsFromImages(
     format: PAYSLIP_SCHEMA,
     stream: false,
   });
-  const text = response.message?.content ?? "{}";
-  let parsed: OllamaExtractResult;
-  try {
-    parsed = JSON.parse(text) as OllamaExtractResult;
-  } catch {
-    throw new Error(`Model returned non-JSON content: ${text.slice(0, 200)}`);
-  }
+  const text = response.message?.content ?? "";
+  const parsed = extractJsonObject(text) as OllamaExtractResult;
   if (!parsed || !Array.isArray(parsed.payslips)) {
     throw new Error("Model response missing payslips array");
   }
