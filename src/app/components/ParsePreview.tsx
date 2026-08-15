@@ -244,7 +244,7 @@ const ParsePreviewInner = function ParsePreview({ stats, live }: ParsePreviewPro
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: "1.2fr 0.5fr 0.6fr 0.5fr 0.5fr 0.7fr 0.5fr",
+              gridTemplateColumns: "1.4fr 0.6fr 0.7fr 0.7fr 0.5fr 0.8fr",
               px: 1.5,
               py: 1,
               borderBottom: `1px solid ${palette.border}`,
@@ -261,21 +261,19 @@ const ParsePreviewInner = function ParsePreview({ stats, live }: ParsePreviewPro
             <span style={{ textAlign: "right" }}>Tax</span>
             <span style={{ textAlign: "right" }}>Super</span>
             <span style={{ textAlign: "right" }}>Net</span>
-            <span style={{ textAlign: "right" }}>PDF</span>
           </Box>
           {preview.map((r, idx) => (
             <Box
               key={r.id}
               sx={{
                 display: "grid",
-                gridTemplateColumns: "1.2fr 0.5fr 0.6fr 0.5fr 0.5fr 0.7fr 0.5fr",
+                gridTemplateColumns: "1.4fr 0.6fr 0.7fr 0.7fr 0.5fr 0.8fr",
                 px: 1.5,
                 py: 0.9,
                 borderBottom:
                   idx === preview.length - 1 ? "none" : `1px solid ${palette.border}`,
                 color: palette.text,
                 "& > span": { fontVariantNumeric: "tabular-nums" },
-                "& > a": { justifySelf: "end" },
               }}
             >
               <span>
@@ -288,28 +286,6 @@ const ParsePreviewInner = function ParsePreview({ stats, live }: ParsePreviewPro
               <span style={{ textAlign: "right", color: palette.mint, fontWeight: 600 }}>
                 {fmtAudWhole(r.totalEarned)}
               </span>
-              {r.pdfUrl ? (
-                <Box
-                  component="a"
-                  href={r.pdfUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Open source PDF"
-                  sx={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 0.5,
-                    color: palette.mint,
-                    fontSize: 10.5,
-                    fontWeight: 600,
-                    textDecoration: "none",
-                  }}
-                >
-                  ↗ open
-                </Box>
-              ) : (
-                <span style={{ textAlign: "right", color: palette.textDim }}>—</span>
-              )}
             </Box>
           ))}
         </Box>

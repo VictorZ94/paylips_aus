@@ -19,7 +19,7 @@ function toIsoDate(raw: string): string {
   return v;
 }
 
-function coerceRow(raw: Record<string, unknown>, pdfUrl: string): Payslip | null {
+function coerceRow(raw: Record<string, unknown>): Payslip | null {
   const required = [
     "startDate",
     "endDate",
@@ -59,7 +59,6 @@ function coerceRow(raw: Record<string, unknown>, pdfUrl: string): Payslip | null
     taxWithheld,
     super: sup,
     totalEarned,
-    pdfUrl,
   };
 }
 
@@ -112,12 +111,6 @@ export async function POST(req: Request) {
     ? modelField.trim()
     : DEFAULT_MODEL;
 
-  const pdfUrlField = form.get("pdfUrl");
-  const pdfUrl =
-    typeof pdfUrlField === "string" && pdfUrlField.trim().length > 0
-      ? pdfUrlField.trim()
-      : "";
-
   const base64: string[] = [];
   for (const f of images) {
     const buf = Buffer.from(await f.arrayBuffer());
@@ -128,7 +121,7 @@ export async function POST(req: Request) {
     const result = await extractPayslipsFromImages(base64, model);
     const payslips: Payslip[] = [];
     for (const raw of result.payslips) {
-      const row = coerceRow(raw as unknown as Record<string, unknown>, pdfUrl);
+      const row = coerceRow(raw as unknown as Record<string, unknown>);
       if (row) payslips.push(row);
     }
     return NextResponse.json({ payslips, model });

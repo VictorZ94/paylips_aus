@@ -4,7 +4,6 @@ import { memo, useMemo, useState, useCallback } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Tooltip from "@mui/material/Tooltip";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -12,7 +11,6 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TableSortLabel from "@mui/material/TableSortLabel";
-import PictureAsPdfRoundedIcon from "@mui/icons-material/PictureAsPdfRounded";
 import { palette } from "../theme";
 import type { Payslip } from "../../lib/types";
 import {
@@ -30,8 +28,7 @@ type SortKey =
   | "laundry"
   | "tax"
   | "super"
-  | "total"
-  | "source";
+  | "total";
 
 type SortDir = "asc" | "desc";
 
@@ -42,21 +39,19 @@ interface PayslipTableProps {
 interface ColDef {
   key: SortKey;
   label: string;
-  align: "left" | "right" | "center";
+  align: "left" | "right";
   numeric: boolean;
   hint?: string;
-  sortable: boolean;
 }
 
 const COLUMNS: ColDef[] = [
-  { key: "period", label: "Period", align: "left", numeric: false, sortable: true },
-  { key: "hours", label: "Hours", align: "right", numeric: true, hint: "Total hours worked", sortable: true },
-  { key: "earns", label: "Gross", align: "right", numeric: true, sortable: true },
-  { key: "laundry", label: "Laundry", align: "right", numeric: true, sortable: true },
-  { key: "tax", label: "Tax", align: "right", numeric: true, hint: "Tax withheld", sortable: true },
-  { key: "super", label: "Super", align: "right", numeric: true, sortable: true },
-  { key: "total", label: "Net", align: "right", numeric: true, hint: "Total earned", sortable: true },
-  { key: "source", label: "Source", align: "center", numeric: false, sortable: false },
+  { key: "period", label: "Period", align: "left", numeric: false },
+  { key: "hours", label: "Hours", align: "right", numeric: true, hint: "Total hours worked" },
+  { key: "earns", label: "Gross", align: "right", numeric: true },
+  { key: "laundry", label: "Laundry", align: "right", numeric: true },
+  { key: "tax", label: "Tax", align: "right", numeric: true, hint: "Tax withheld" },
+  { key: "super", label: "Super", align: "right", numeric: true },
+  { key: "total", label: "Net", align: "right", numeric: true, hint: "Total earned" },
 ];
 
 function compare(a: Payslip, b: Payslip, key: SortKey, dir: SortDir): number {
@@ -76,8 +71,6 @@ function compare(a: Payslip, b: Payslip, key: SortKey, dir: SortDir): number {
       return sign * (a.super - b.super);
     case "total":
       return sign * (a.totalEarned - b.totalEarned);
-    case "source":
-      return sign * a.pdfUrl.localeCompare(b.pdfUrl);
   }
 }
 
@@ -125,73 +118,8 @@ function CellValue({
           {fmtAud(row.totalEarned)}
         </Box>
       );
-    case "source":
-      return row.pdfUrl ? (
-        <Tooltip title="Open source PDF in a new tab">
-          <Box
-            component="a"
-            href={row.pdfUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Open source PDF"
-            sx={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 26,
-              height: 26,
-              borderRadius: 1.5,
-              border: `1px solid ${palette.borderHi}`,
-              color: palette.textMute,
-              transition: "all 140ms ease",
-              "&:hover": {
-                color: palette.mint,
-                borderColor: palette.mint,
-                backgroundColor: palette.mintWash,
-              },
-            }}
-          >
-            <PictureAsPdfRoundedIcon sx={{ fontSize: 15 }} />
-          </Box>
-        </Tooltip>
-      ) : (
-        <Typography sx={{ color: palette.textDim, fontSize: 11 }}>—</Typography>
-      );
   }
 }
-
-const SourceBadge = memo(function SourceBadge({ url }: { url: string }) {
-  if (!url) return null;
-  return (
-    <Tooltip title="Open source PDF in a new tab">
-      <Box
-        component="a"
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Open source PDF"
-        sx={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 0.75,
-          color: palette.mint,
-          fontSize: 11.5,
-          fontWeight: 600,
-          textDecoration: "none",
-          padding: "2px 8px",
-          borderRadius: 999,
-          border: `1px solid ${palette.mint}33`,
-          backgroundColor: palette.mintWash,
-          transition: "all 140ms ease",
-          "&:hover": { borderColor: palette.mint },
-        }}
-      >
-        <PictureAsPdfRoundedIcon sx={{ fontSize: 13 }} />
-        Stored
-      </Box>
-    </Tooltip>
-  );
-});
 
 const PayslipTableInner = function PayslipTable({ rows }: PayslipTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>("period");
@@ -199,7 +127,6 @@ const PayslipTableInner = function PayslipTable({ rows }: PayslipTableProps) {
 
   const onSort = useCallback(
     (key: SortKey) => () => {
-      if (!COLUMNS.find((c) => c.key === key)?.sortable) return;
       if (key === sortKey) {
         setSortDir((d) => (d === "asc" ? "desc" : "asc"));
       } else {
@@ -278,22 +205,18 @@ const PayslipTableInner = function PayslipTable({ rows }: PayslipTableProps) {
                     py: 1.25,
                   }}
                 >
-                  {c.sortable ? (
-                    <TableSortLabel
-                      active={sortKey === c.key}
-                      direction={sortKey === c.key ? sortDir : "asc"}
-                      onClick={onSort(c.key)}
-                      sx={{
-                        color: "inherit",
-                        "&.Mui-active": { color: palette.mint },
-                        "& .MuiTableSortLabel-icon": { color: `${palette.mint} !important` },
-                      }}
-                    >
-                      {c.label}
-                    </TableSortLabel>
-                  ) : (
-                    c.label
-                  )}
+                  <TableSortLabel
+                    active={sortKey === c.key}
+                    direction={sortKey === c.key ? sortDir : "asc"}
+                    onClick={onSort(c.key)}
+                    sx={{
+                      color: "inherit",
+                      "&.Mui-active": { color: palette.mint },
+                      "& .MuiTableSortLabel-icon": { color: `${palette.mint} !important` },
+                    }}
+                  >
+                    {c.label}
+                  </TableSortLabel>
                 </TableCell>
               ))}
             </TableRow>
@@ -367,14 +290,6 @@ const PayslipTableInner = function PayslipTable({ rows }: PayslipTableProps) {
             <SummaryStat label="Tax" value={fmtAudWhole(totals.tax)} />
             <SummaryStat label="Super" value={fmtAudWhole(totals.sup)} />
             <SummaryStat label="Net" value={fmtAudWhole(totals.total)} accent />
-            {rows.some((r) => r.pdfUrl) && (
-              <SummaryStat
-                label="Source"
-                value={`${new Set(rows.map((r) => r.pdfUrl).filter(Boolean)).size} file${
-                  new Set(rows.map((r) => r.pdfUrl).filter(Boolean)).size === 1 ? "" : "s"
-                }`}
-              />
-            )}
           </Stack>
         </Stack>
       </Box>
@@ -419,4 +334,3 @@ function SummaryStat({
 }
 
 export const PayslipTable = memo(PayslipTableInner);
-export { SourceBadge };

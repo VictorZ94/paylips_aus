@@ -6,7 +6,6 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
 import CloudUploadRoundedIcon from "@mui/icons-material/CloudUploadRounded";
-import CloudDoneRoundedIcon from "@mui/icons-material/CloudDoneRounded";
 import { palette } from "../theme";
 
 interface DashboardEmptyStateProps {
@@ -16,15 +15,11 @@ interface DashboardEmptyStateProps {
 const STEPS = [
   {
     icon: CloudUploadRoundedIcon,
-    label: "Drop your first PDF on /ai-upload",
+    label: "Drop a PDF on /ai-upload",
   },
   {
     icon: AutoAwesomeRoundedIcon,
     label: "gemma4:cloud reads each page and returns structured data",
-  },
-  {
-    icon: CloudDoneRoundedIcon,
-    label: "Original PDF is stored in Firebase Storage; rows link back to it",
   },
 ];
 
@@ -97,9 +92,8 @@ export const DashboardEmptyState = memo(function DashboardEmptyState({
             lineHeight: 1.55,
           }}
         >
-          Drop a PDF on the upload page. We render each page to an image, ask
-          gemma4:cloud to extract the rows, store the original PDF in Firebase
-          Storage, and keep a download link with every row.
+          Drop a PDF on the upload page. We render each page to an image and
+          ask gemma4:cloud to extract the rows. Nothing leaves the browser.
         </Typography>
         <Box
           role="button"

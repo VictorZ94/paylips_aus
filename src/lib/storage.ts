@@ -4,6 +4,10 @@ import { useSyncExternalStore } from "react";
 import type { Payslip } from "./types";
 import { indexedDb } from "./indexeddb";
 
+// Single stable reference for the not-yet-loaded state. Returning a fresh
+// `[]` on every call would trigger an infinite loop in useSyncExternalStore.
+const EMPTY: Payslip[] = [];
+
 const listeners = new Set<() => void>();
 let cache: Payslip[] | null = null;
 let inflight: Promise<void> | null = null;
@@ -34,7 +38,7 @@ async function ensureLoaded(): Promise<void> {
 function getCachedSnapshot(): Payslip[] {
   if (cache === null) {
     void ensureLoaded();
-    return [];
+    return EMPTY;
   }
   return cache;
 }
@@ -54,7 +58,7 @@ export function getSnapshot(): Payslip[] {
 }
 
 export function getServerSnapshot(): Payslip[] {
-  return [];
+  return EMPTY;
 }
 
 export async function commitSnapshot(rows: Payslip[]): Promise<void> {
