@@ -50,9 +50,13 @@ export function filterPayslips(
   const { start, end } = resolveRange(filters, payslips);
   const sMs = toDate(start);
   const eMs = toDate(end);
+  const inCompany =
+    filters.companies.length === 0
+      ? () => true
+      : (p: Payslip) => filters.companies.includes(p.company);
   return payslips.filter((p) => {
     const pMs = toDate(p.startDate);
-    return pMs >= sMs && pMs <= eMs;
+    return pMs >= sMs && pMs <= eMs && inCompany(p);
   });
 }
 

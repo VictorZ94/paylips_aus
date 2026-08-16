@@ -279,7 +279,55 @@ export default function AiUploadPage() {
       )}
 
       {stats ? (
-        <Box className="fade-up">
+        <Box className="fade-up" sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {(() => {
+            const map = new Map<string, number>();
+            for (const r of stats.rows) {
+              const c = r.company?.trim() || "Unknown";
+              map.set(c, (map.get(c) ?? 0) + 1);
+            }
+            if (map.size === 0) return null;
+            const label =
+              map.size === 1
+                ? Array.from(map.keys())[0]
+                : `Multiple employers (${map.size})`;
+            return (
+              <Box
+                sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 1,
+                  alignSelf: "flex-start",
+                  px: 1.5,
+                  py: 0.75,
+                  borderRadius: 999,
+                  border: `1px solid ${palette.border}`,
+                  backgroundColor: palette.surfaceLow,
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: 10.5,
+                    color: palette.textDim,
+                    letterSpacing: "0.14em",
+                    textTransform: "uppercase",
+                    fontWeight: 700,
+                  }}
+                >
+                  Detected employer
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: 12.5,
+                    color: palette.mint,
+                    fontWeight: 600,
+                  }}
+                >
+                  {label}
+                </Typography>
+              </Box>
+            );
+          })()}
           <ConfirmedCard
             stats={stats}
             onReplace={onReplace}

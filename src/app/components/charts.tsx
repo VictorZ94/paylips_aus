@@ -161,8 +161,10 @@ export const EarningsChart = memo(function EarningsChart({
 
 export const BreakdownDonut = memo(function BreakdownDonut({
   slices,
+  onSliceClick,
 }: {
   slices: BreakdownSlice[];
+  onSliceClick?: (label: string) => void;
 }) {
   const t = useChartTheme();
   const total = slices.reduce((acc, s) => acc + s.value, 0);
@@ -179,6 +181,23 @@ export const BreakdownDonut = memo(function BreakdownDonut({
         fontFamily:
           'var(--font-geist-sans), -apple-system, "Segoe UI", sans-serif',
         foreColor: t.textMute,
+        ...(onSliceClick
+          ? {
+              events: {
+                dataPointSelection: (
+                  _: unknown,
+                  __: unknown,
+                  cfg: unknown,
+                ) => {
+                  const label =
+                    typeof cfg === "object" && cfg && "label" in cfg
+                      ? String((cfg as { label: unknown }).label)
+                      : "";
+                  if (label) onSliceClick(label);
+                },
+              },
+            }
+          : {}),
       },
       theme: { mode: "dark" as const },
       labels: slices.map((s) => s.label),
@@ -240,7 +259,7 @@ export const BreakdownDonut = memo(function BreakdownDonut({
     // t is stable across renders via useChartTheme memo; tracking individual
     // string fields here would re-create options unnecessarily.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [slices, total],
+    [slices, total, onSliceClick],
   );
 
   if (total <= 0) {

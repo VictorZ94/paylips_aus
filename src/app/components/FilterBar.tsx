@@ -11,6 +11,7 @@ import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 import { palette } from "../theme";
 import { fmtRange, isoToday } from "../../lib/format";
 import type { FilterPreset, Filters } from "../../lib/types";
+import { CompanyFilter } from "./CompanyFilter";
 
 interface FilterBarProps {
   filters: Filters;
@@ -18,6 +19,7 @@ interface FilterBarProps {
   rangeStart: string;
   rangeEnd: string;
   totalPeriods: number;
+  availableCompanies: string[];
 }
 
 const PRESETS: { id: FilterPreset; label: string; sub: string }[] = [
@@ -33,6 +35,7 @@ const FilterBarInner = function FilterBar({
   rangeStart,
   rangeEnd,
   totalPeriods,
+  availableCompanies,
 }: FilterBarProps) {
   const setPreset = useCallback(
     (preset: FilterPreset) => () => {
@@ -149,7 +152,7 @@ const FilterBarInner = function FilterBar({
           />
         </Stack>
       ) : (
-        <Stack direction="row" spacing={1.25} sx={{ alignItems: "center" }}>
+        <Stack direction="row" spacing={1.25} sx={{ alignItems: "center", flexWrap: "wrap", rowGap: 1 }}>
           <CalendarMonthRoundedIcon
             fontSize="small"
             sx={{ color: palette.textDim }}
@@ -176,6 +179,13 @@ const FilterBarInner = function FilterBar({
               fontSize: 11,
               height: 22,
             }}
+          />
+          <CompanyFilter
+            available={availableCompanies}
+            selected={filters.companies}
+            onChange={(next) =>
+              onChange({ ...filters, companies: next })
+            }
           />
         </Stack>
       )}

@@ -13,6 +13,7 @@ type EarningsProps = {
 type DonutProps = {
   kind: "donut";
   slices: BreakdownSlice[];
+  onSliceClick?: (label: string) => void;
 };
 
 export type ChartBundleProps = EarningsProps | DonutProps;
@@ -23,7 +24,7 @@ export default function ChartBundle(props: ChartBundleProps) {
     void _kind;
     return <EarningsChart weekly={weekly} rangeStart={rangeStart} rangeEnd={rangeEnd} />;
   }
-  const { kind: _kind, slices } = props;
+  const { kind: _kind, slices, onSliceClick } = props;
   void _kind;
-  return <BreakdownDonut slices={slices} />;
+  return <BreakdownDonut slices={slices} onSliceClick={onSliceClick} />;
 }

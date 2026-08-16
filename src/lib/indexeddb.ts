@@ -39,6 +39,28 @@ function wipeLegacyStorage(): void {
   }
 }
 
+function withCompanyBackfill(rows: unknown[]): Payslip[] {
+  const out: Payslip[] = [];
+  for (const raw of rows) {
+    if (!raw || typeof raw !== "object") continue;
+    const obj = raw as Partial<Payslip> & { id?: unknown };
+    if (typeof obj.id !== "string") continue;
+    out.push({
+      id: obj.id,
+      startDate: String(obj.startDate ?? ""),
+      endDate: String(obj.endDate ?? ""),
+      hoursWorked: Number(obj.hoursWorked ?? 0),
+      earns: Number(obj.earns ?? 0),
+      laundryAllowances: Number(obj.laundryAllowances ?? 0),
+      taxWithheld: Number(obj.taxWithheld ?? 0),
+      super: Number(obj.super ?? 0),
+      totalEarned: Number(obj.totalEarned ?? 0),
+      company: typeof obj.company === "string" && obj.company ? obj.company : "Unknown",
+    });
+  }
+  return out;
+}
+
 async function getAllRows(): Promise<Payslip[]> {
   const db = await openDb();
   return new Promise((resolve, reject) => {
@@ -47,7 +69,9 @@ async function getAllRows(): Promise<Payslip[]> {
     const req = store.getAll();
     req.onsuccess = () => {
       wipeLegacyStorage();
-      const rows = (req.result as Payslip[] | undefined) ?? [];
+      const rows = withCompanyBackfill(
+        (req.result as unknown[] | undefined) ?? [],
+      );
       rows.sort((a, b) => a.startDate.localeCompare(b.startDate));
       resolve(rows);
     };

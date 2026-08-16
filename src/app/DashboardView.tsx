@@ -24,6 +24,9 @@ import { KpiRow } from "./components/KpiRow";
 import { BreakdownCard, EarningsChartCard } from "./components/ChartCards";
 import { PayslipTable } from "./components/PayslipTable";
 import { HoursChartCard } from "./components/HoursChartCard";
+import { CompanyPieCard } from "./components/CompanyPieCard";
+import { distinctCompanies, incomeByCompany } from "../lib/companies";
+import { computeSummary, filterPayslips } from "../lib/summary";
 import { DashboardEmptyState } from "./components/EmptyState";
 import {
   getServerSnapshot,
@@ -31,7 +34,6 @@ import {
   resetSnapshot,
   subscribe,
 } from "../lib/storage";
-import { computeSummary, filterPayslips } from "../lib/summary";
 import { fmtRange, isoToday } from "../lib/format";
 import type { Filters } from "../lib/types";
 
@@ -39,6 +41,7 @@ const DEFAULT_FILTERS: Filters = {
   preset: "all",
   start: "",
   end: "",
+  companies: [],
 };
 
 function DashboardView() {
@@ -62,9 +65,33 @@ function DashboardView() {
     [payslips, deferredFilters],
   );
 
+  const availableCompanies = useMemo(
+    () => distinctCompanies(payslips),
+    [payslips],
+  );
+  const companySlices = useMemo(
+    () => incomeByCompany(filtered),
+    [filtered],
+  );
+  const companyTotal = useMemo(
+    () => companySlices.reduce((acc, s) => acc + s.value, 0),
+    [companySlices],
+  );
+
   const onFiltersChange = useCallback((next: Filters) => {
     startTransition(() => setFilters(next));
   }, []);
+
+  const onCompanySlice = useCallback(
+    (label: string) => {
+      setFilters((prev) => {
+        const current = prev.companies;
+        const next = current.length === 1 && current[0] === label ? [] : [label];
+        return { ...prev, companies: next };
+      });
+    },
+    [],
+  );
 
   const onClearAll = useCallback(() => {
     resetSnapshot();
@@ -227,6 +254,7 @@ function DashboardView() {
               rangeStart={summary.rangeStart}
               rangeEnd={summary.rangeEnd}
               totalPeriods={summary.periodCount}
+              availableCompanies={availableCompanies}
             />
           </Box>
 
@@ -260,6 +288,14 @@ function DashboardView() {
           </Box>
 
           <Box className="fade-up" sx={{ animationDelay: "300ms" }}>
+            <CompanyPieCard
+              slices={companySlices}
+              total={companyTotal}
+              onSliceClick={onCompanySlice}
+            />
+          </Box>
+
+          <Box className="fade-up" sx={{ animationDelay: "360ms" }}>
             <PayslipTable rows={filtered} />
           </Box>
         </>

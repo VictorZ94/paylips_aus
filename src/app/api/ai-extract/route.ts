@@ -60,6 +60,12 @@ function coerceRow(
     return null;
   }
 
+  const companyRaw = raw.company;
+  const company =
+    typeof companyRaw === "string" && companyRaw.trim().length > 0
+      ? companyRaw.trim()
+      : "Unknown";
+
   return {
     row: {
       id: `${startDate}|${endDate}`,
@@ -71,6 +77,7 @@ function coerceRow(
       taxWithheld,
       super: sup,
       totalEarned,
+      company,
     },
     defaultedAllowances,
   };

@@ -8,6 +8,7 @@ export interface Payslip {
   taxWithheld: number;
   super: number;
   totalEarned: number;
+  company: string;
 }
 
 export type FilterPreset = "7d" | "30d" | "ytd" | "all" | "custom";
@@ -16,10 +17,11 @@ export interface Filters {
   preset: FilterPreset;
   start: string;
   end: string;
+  companies: string[];
 }
 
 export interface BreakdownSlice {
-  label: "Net" | "Tax" | "Super" | "Laundry";
+  label: string;
   value: number;
   color: string;
 }
