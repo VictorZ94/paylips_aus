@@ -19,46 +19,60 @@ function toIsoDate(raw: string): string {
   return v;
 }
 
-function coerceRow(raw: Record<string, unknown>): Payslip | null {
-  const required = [
-    "startDate",
-    "endDate",
-    "hoursWorked",
-    "earns",
-    "laundryAllowances",
-    "taxWithheld",
-    "super",
-    "totalEarned",
-  ];
-  for (const k of required) {
-    if (raw[k] === undefined || raw[k] === null) return null;
-  }
-  const startDate = toIsoDate(String(raw.startDate));
-  const endDate = toIsoDate(String(raw.endDate));
+function coerceRow(
+  raw: Record<string, unknown>,
+): { row: Payslip; defaultedAllowances: boolean } | null {
+  const startRaw = raw.startDate;
+  const endRaw = raw.endDate;
+  if (startRaw === undefined || endRaw === undefined) return null;
+
+  const startDate = toIsoDate(String(startRaw));
+  const endDate = toIsoDate(String(endRaw));
   if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(endDate)) {
     return null;
   }
-  const hoursWorked = Number(raw.hoursWorked);
-  const earns = Number(raw.earns);
-  const laundryAllowances = Number(raw.laundryAllowances);
-  const taxWithheld = Number(raw.taxWithheld);
-  const sup = Number(raw.super);
-  const totalEarned = Number(raw.totalEarned);
+
+  const reqNum = (v: unknown): number | null => {
+    if (v === undefined || v === null || v === "") return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const hoursWorked = reqNum(raw.hoursWorked);
+  const earns = reqNum(raw.earns);
+  const taxWithheld = reqNum(raw.taxWithheld);
+  const sup = reqNum(raw.super);
+  const totalEarned = reqNum(raw.totalEarned);
+  // laundryAllowances defaults to 0 if absent
+  const laundryRaw = raw.laundryAllowances;
+  const defaultedAllowances =
+    laundryRaw === undefined || laundryRaw === null || laundryRaw === "";
+  const laundryAllowances =
+    defaultedAllowances ? 0 : (reqNum(laundryRaw) ?? 0);
+
   if (
-    ![hoursWorked, earns, laundryAllowances, taxWithheld, sup, totalEarned].every(Number.isFinite)
+    hoursWorked === null ||
+    earns === null ||
+    taxWithheld === null ||
+    sup === null ||
+    totalEarned === null
   ) {
     return null;
   }
+
   return {
-    id: `${startDate}|${endDate}`,
-    startDate,
-    endDate,
-    hoursWorked,
-    earns,
-    laundryAllowances,
-    taxWithheld,
-    super: sup,
-    totalEarned,
+    row: {
+      id: `${startDate}|${endDate}`,
+      startDate,
+      endDate,
+      hoursWorked,
+      earns,
+      laundryAllowances,
+      taxWithheld,
+      super: sup,
+      totalEarned,
+    },
+    defaultedAllowances,
   };
 }
 
@@ -120,11 +134,22 @@ export async function POST(req: Request) {
   try {
     const result = await extractPayslipsFromImages(base64, model);
     const payslips: Payslip[] = [];
+    let defaultedAllowances = 0;
     for (const raw of result.payslips) {
-      const row = coerceRow(raw as unknown as Record<string, unknown>);
-      if (row) payslips.push(row);
+      const coerced = coerceRow(raw as unknown as Record<string, unknown>);
+      if (coerced) {
+        payslips.push(coerced.row);
+        if (coerced.defaultedAllowances) defaultedAllowances++;
+      }
     }
-    return NextResponse.json({ payslips, model });
+    return NextResponse.json({
+      payslips,
+      model,
+      warnings: {
+        defaultedAllowances,
+        droppedRows: result.payslips.length - payslips.length,
+      },
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: message, snippet: message.slice(0, 400) }, { status: 502 });

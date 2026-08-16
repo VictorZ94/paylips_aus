@@ -33,8 +33,26 @@ export const PAYSLIP_SCHEMA = {
   required: ["payslips"],
 } as const;
 
-export const PROMPT =
-  "You are an Australian payroll data extractor. Read the attached payslip pages and return a JSON object with a `payslips` array. Each item must include: startDate (DD/MM/YYYY), endDate (DD/MM/YYYY), hoursWorked (total hours worked in the period), earns (gross $), laundryAllowances ($), taxWithheld ($), super ($ contributed), totalEarned ($ net). Preserve the original values exactly. If a value is unclear, omit that payslip rather than guessing.";
+export const PROMPT = [
+  "You are an Australian payroll data extractor. Two PDF formats reach this pipeline: a detailed format that breaks out allowances and super, and a minimal format that only prints gross/tax/net. The output schema is the SAME for both formats.",
+  "",
+  "Read the attached payslip pages and return a JSON object with a `payslips` array. Every payslip row must include ALL eight fields below:",
+  "",
+  "- startDate (DD/MM/YYYY)",
+  "- endDate (DD/MM/YYYY)",
+  "- hoursWorked (number — total hours worked in the pay period)",
+  "- earns (number — gross earnings in AUD)",
+  "- laundryAllowances (number — AUD; if no allowance line appears on the payslip, output 0; this is the ONLY field that may be defaulted)",
+  "- taxWithheld (number — AUD)",
+  "- super (number — AUD contribution for the period)",
+  "- totalEarned (number — net AUD)",
+  "",
+  "Rules:",
+  "- Output 0 for `laundryAllowances` when the source has no allowance line. All other numeric fields must come from the source — output the value exactly as printed. If a non-allowance numeric value is unreadable, omit the payslip rather than guess.",
+  "- Preserve the original values exactly when they are present.",
+  "- Only omit a payslip if start/end dates are unreadable.",
+  "- The two formats differ only in which numeric lines they print; the field set is identical.",
+].join("\n");
 
 export const DEFAULT_MODEL = "gemma4:cloud";
 

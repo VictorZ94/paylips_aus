@@ -29,6 +29,7 @@ export interface ParseStats {
   skipped: number;
   added: number;
   updated: number;
+  warnings?: { defaultedAllowances: number; droppedRows: number };
 }
 
 interface ParsePreviewProps {

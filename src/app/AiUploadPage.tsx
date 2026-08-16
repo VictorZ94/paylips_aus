@@ -105,7 +105,19 @@ export default function AiUploadPage() {
         const msg = body?.error ?? `Server returned ${res.status}`;
         throw new Error(msg);
       }
-      const body = (await res.json()) as { payslips: Payslip[] };
+      const body = (await res.json()) as {
+        payslips: Payslip[];
+        warnings?: { defaultedAllowances: number; droppedRows: number };
+      };
+      if (
+        body.warnings &&
+        (body.warnings.defaultedAllowances > 0 || body.warnings.droppedRows > 0)
+      ) {
+        console.warn(
+          `[ai-extract] LLM misbehaviour in ${file.name}:`,
+          body.warnings,
+        );
+      }
       const ms = Math.round(performance.now() - start);
       const overlay = {
         rows: body.payslips,
