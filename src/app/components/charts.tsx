@@ -8,6 +8,7 @@ import { useTheme } from "@mui/material/styles";
 import { palette } from "../theme";
 import type { BreakdownSlice, ChartTheme, WeeklyPoint } from "../../lib/types";
 import { fmtDateShort, fmtAudWhole } from "../../lib/format";
+import type { HoursBucket } from "../../lib/hours-buckets";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
@@ -264,6 +265,156 @@ export const BreakdownDonut = memo(function BreakdownDonut({
         series={series}
         type="donut"
         height={260}
+      />
+    </Box>
+  );
+});
+
+export const HoursBar = memo(function HoursBar({
+  buckets,
+  threshold,
+  thresholdLabel,
+}: {
+  buckets: HoursBucket[];
+  threshold: number;
+  thresholdLabel: string;
+}) {
+  const t = useChartTheme();
+
+  const { categories, data } = useMemo(() => {
+    const cats = buckets.map((b) => b.label);
+    const values = buckets.map((b) => Number(b.hours.toFixed(2)));
+    return { categories: cats, data: values };
+  }, [buckets]);
+
+  const options = useMemo(
+    () => ({
+      chart: {
+        id: "hours",
+        type: "bar" as const,
+        background: "transparent",
+        toolbar: { show: false },
+        zoom: { enabled: false },
+        animations: {
+          enabled: true,
+          speed: 600,
+          animateGradually: { enabled: true, delay: 30 },
+        },
+        fontFamily:
+          'var(--font-geist-sans), -apple-system, "Segoe UI", sans-serif',
+        foreColor: t.textMute,
+      },
+      theme: { mode: "dark" as const },
+      colors: [t.mint],
+      states: {
+        hover: { filter: { type: "lighten" as const, value: 0.08 } },
+        active: { filter: { type: "none" as const } },
+      },
+      plotOptions: {
+        bar: {
+          borderRadius: 6,
+          columnWidth: "55%",
+          borderRadiusApplication: "end" as const,
+          distributed: false,
+          dataLabels: { position: "top" as const },
+          colors: {
+            ranges: [
+              { from: 0, to: threshold + 0.0001, color: t.mint },
+              { from: threshold + 0.0001, to: 1e9, color: t.coral },
+            ],
+          },
+        },
+      },
+      grid: {
+        borderColor: t.border,
+        strokeDashArray: 3,
+        xaxis: { lines: { show: false } },
+        yaxis: { lines: { show: true } },
+        padding: { top: 10, right: 8, bottom: 0, left: 12 },
+      },
+      dataLabels: { enabled: false },
+      stroke: { show: true, width: 0 },
+      tooltip: {
+        theme: "dark" as const,
+        fillSeriesColor: false,
+        style: { fontSize: "12px" },
+        marker: { show: false },
+        x: { show: true },
+        y: {
+          formatter: (v: number) => `${v.toFixed(1)} h`,
+          title: { formatter: () => "Hours worked" },
+        },
+      },
+      xaxis: {
+        categories,
+        labels: {
+          style: { colors: t.textDim, fontSize: "11px", fontWeight: 500 },
+          rotate: 0,
+          hideOverlappingLabels: true,
+        },
+        axisBorder: { color: t.border },
+        axisTicks: { color: t.border },
+      },
+      yaxis: {
+        labels: {
+          style: { colors: t.textDim, fontSize: "11px" },
+          formatter: (v: number) => `${v.toFixed(0)}h`,
+        },
+      },
+      legend: { show: false },
+      annotations: {
+        yaxis: [
+          {
+            y: threshold,
+            borderColor: t.coral,
+            strokeDashArray: 5,
+            opacity: 0.85,
+            label: {
+              borderColor: t.coral,
+              style: {
+                color: t.ink,
+                background: t.coral,
+                fontSize: "11px",
+                fontWeight: 600,
+                padding: { left: 8, right: 8, top: 4, bottom: 4 },
+              },
+              text: thresholdLabel,
+              position: "right",
+              offsetX: 0,
+              offsetY: -2,
+            },
+          },
+        ],
+      },
+    }),
+    // t and threshold are stable for the lifetime of the chart (memoised
+    // upstream); listing them would re-create options on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [categories, data, threshold, thresholdLabel],
+  );
+
+  if (buckets.length === 0) {
+    return (
+      <Box
+        sx={{
+          height: 280,
+          display: "grid",
+          placeItems: "center",
+          color: "text.secondary",
+        }}
+      >
+        <Typography variant="body2">No hours in this range</Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ width: "100%" }}>
+      <ReactApexChart
+        options={options}
+        series={[{ name: "Hours worked", data }]}
+        type="bar"
+        height={300}
       />
     </Box>
   );

@@ -23,6 +23,7 @@ import { FilterBar } from "./components/FilterBar";
 import { KpiRow } from "./components/KpiRow";
 import { BreakdownCard, EarningsChartCard } from "./components/ChartCards";
 import { PayslipTable } from "./components/PayslipTable";
+import { HoursChartCard } from "./components/HoursChartCard";
 import { DashboardEmptyState } from "./components/EmptyState";
 import {
   getServerSnapshot,
@@ -251,6 +252,14 @@ function DashboardView() {
           </Box>
 
           <Box className="fade-up" sx={{ animationDelay: "240ms" }}>
+            <HoursChartCard
+              weekly={summary.weekly}
+              rangeStart={summary.rangeStart}
+              rangeEnd={summary.rangeEnd}
+            />
+          </Box>
+
+          <Box className="fade-up" sx={{ animationDelay: "300ms" }}>
             <PayslipTable rows={filtered} />
           </Box>
         </>
