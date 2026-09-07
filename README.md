@@ -35,3 +35,32 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 # paylips_aus
+
+## Data storage
+
+Payslip data is stored in **Firestore**, scoped per authenticated user at
+`users/{uid}/payslips/{payslipId}`. Sync is automatic across browsers and
+devices — no re-uploading. Offline reads/writes are supported via the SDK's
+persistent cache.
+
+### One-time Firebase Console setup
+
+1. Enable **Firestore Database** (Native mode) in your Firebase project.
+2. Paste the following rules under **Firestore → Rules**:
+
+   ```
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{db}/documents {
+       match /users/{uid}/payslips/{doc} {
+         allow read, write: if request.auth != null && request.auth.uid == uid;
+       }
+     }
+   }
+   ```
+
+### Existing local data
+
+On first authenticated load, any rows in the legacy `paylips_aus` IndexedDB
+are copied to Firestore and then cleared. A `localStorage` flag
+(`paylips_aus.migratedToFirestore`) ensures the migration runs only once.
