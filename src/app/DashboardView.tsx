@@ -28,6 +28,8 @@ import { CompanyPieCard } from "./components/CompanyPieCard";
 import { distinctCompanies, incomeByCompany } from "../lib/companies";
 import { computeSummary, filterPayslips } from "../lib/summary";
 import { DashboardEmptyState } from "./components/EmptyState";
+import { TaxRefundDialog } from "./components/TaxRefundDialog";
+import { useTaxRefunds } from "../lib/tax-refunds";
 import {
   getServerSnapshot,
   getSnapshot,
@@ -54,6 +56,8 @@ function DashboardView() {
   );
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [refundsOpen, setRefundsOpen] = useState(false);
+  const refunds = useTaxRefunds();
 
   const deferredFilters = useDeferredValue(filters);
   const filtered = useMemo(
@@ -61,8 +65,8 @@ function DashboardView() {
     [payslips, deferredFilters],
   );
   const summary = useMemo(
-    () => computeSummary(payslips, deferredFilters),
-    [payslips, deferredFilters],
+    () => computeSummary(payslips, deferredFilters, refunds),
+    [payslips, deferredFilters, refunds],
   );
 
   const availableCompanies = useMemo(
@@ -97,6 +101,8 @@ function DashboardView() {
     resetSnapshot();
     setConfirmClear(false);
   }, []);
+
+  const onOpenRefunds = useCallback(() => setRefundsOpen(true), []);
 
   const onGoUpload = useCallback(() => {
     router.push("/ai-upload");
@@ -259,7 +265,11 @@ function DashboardView() {
           </Box>
 
           <Box className="fade-up" sx={{ animationDelay: "120ms" }}>
-            <KpiRow summary={summary} weekly={summary.weekly} />
+            <KpiRow
+              summary={summary}
+              weekly={summary.weekly}
+              onRecordRefund={onOpenRefunds}
+            />
           </Box>
 
           <Box
@@ -323,6 +333,12 @@ function DashboardView() {
           data stays on this device · v1
         </Typography>
       </Box>
+
+      <TaxRefundDialog
+        open={refundsOpen}
+        onClose={() => setRefundsOpen(false)}
+        refunds={refunds}
+      />
 
       <Dialog
         open={confirmClear}

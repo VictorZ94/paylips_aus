@@ -3,6 +3,7 @@ import type {
   Filters,
   Payslip,
   Summary,
+  TaxRefund,
   WeeklyPoint,
 } from "./types";
 import { isoAddDays, isoToday, isoYearStartAU } from "./format";
@@ -60,9 +61,30 @@ export function filterPayslips(
   });
 }
 
+// Refunds are attributed by the date they were received. They are not tied to
+// an employer, so the company filter does not apply. Preset windows end at the
+// latest payslip, which would hide a refund received after it, so their refund
+// window runs to today ("all" also has no lower bound).
+export function sumRefunds(
+  refunds: TaxRefund[],
+  filters: Filters,
+  range: { start: string; end: string },
+): number {
+  const today = isoToday();
+  const start = filters.preset === "all" ? "" : range.start;
+  const end =
+    filters.preset === "custom" || range.end > today ? range.end : today;
+  let total = 0;
+  for (const r of refunds) {
+    if (r.date >= start && r.date <= end) total += r.amount;
+  }
+  return total;
+}
+
 export function computeSummary(
   payslips: Payslip[],
   filters: Filters,
+  refunds: TaxRefund[] = [],
 ): Summary {
   const { start, end } = resolveRange(filters, payslips);
   const filtered = filterPayslips(payslips, filters);
@@ -118,6 +140,8 @@ export function computeSummary(
   const prevWindowDelta =
     prevTotal > 0 ? (totalEarned - prevTotal) / prevTotal : null;
 
+  const taxRefunded = sumRefunds(refunds, filters, { start, end });
+
   const breakdown: BreakdownSlice[] = [
     { label: "Net", value: totalEarned, color: palette.mint },
     { label: "Tax", value: taxWithheld, color: palette.coral },
@@ -130,6 +154,8 @@ export function computeSummary(
     netPay: totalEarned,
     hours,
     taxWithheld,
+    taxRefunded,
+    netTax: taxWithheld - taxRefunded,
     superTotal,
     allowancesTotal,
     periodCount: filtered.length,
