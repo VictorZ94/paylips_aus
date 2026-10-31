@@ -43,6 +43,8 @@ export interface Summary {
   netPay: number;
   hours: number;
   taxWithheld: number;
+  taxRefunded: number;
+  netTax: number;
   superTotal: number;
   allowancesTotal: number;
   periodCount: number;
@@ -67,4 +69,11 @@ export interface ChartTheme {
   surface: string;
   surfaceHi: string;
   ink: string;
+}
+export interface TaxRefund {
+  id: string;
+  /** ISO date the refund was received; decides which dashboard window it falls in. */
+  date: string;
+  amount: number;
+  note: string;
 }

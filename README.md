@@ -55,6 +55,9 @@ persistent cache.
        match /users/{uid}/payslips/{doc} {
          allow read, write: if request.auth != null && request.auth.uid == uid;
        }
+       match /users/{uid}/taxRefunds/{doc} {
+         allow read, write: if request.auth != null && request.auth.uid == uid;
+       }
      }
    }
    ```

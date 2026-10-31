@@ -1,9 +1,11 @@
 "use client";
 
-import { memo, useMemo } from "react";
+import { memo, useMemo, type ReactNode } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Tooltip from "@mui/material/Tooltip";
+import Button from "@mui/material/Button";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
 import TrendingDownRoundedIcon from "@mui/icons-material/TrendingDownRounded";
 import TrendingFlatRoundedIcon from "@mui/icons-material/TrendingFlatRounded";
@@ -22,6 +24,7 @@ interface KpiCardProps {
   delta?: number | null;
   spark: number[];
   sparkColor?: string;
+  action?: ReactNode;
 }
 
 const KpiCardInner = function KpiCard({
@@ -31,6 +34,7 @@ const KpiCardInner = function KpiCard({
   delta,
   spark,
   sparkColor,
+  action,
 }: KpiCardProps) {
   const deltaTone =
     delta == null || delta === 0
@@ -77,6 +81,7 @@ const KpiCardInner = function KpiCard({
         >
           {label}
         </Typography>
+        {action}
         {delta != null && DeltaIcon && (
           <Tooltip
             title={
@@ -148,9 +153,11 @@ const KpiCard = memo(KpiCardInner);
 export const KpiRow = memo(function KpiRow({
   summary,
   weekly,
+  onRecordRefund,
 }: {
   summary: Summary;
   weekly: WeeklyPoint[];
+  onRecordRefund: () => void;
 }) {
   const spark = useMemo(
     () => weekly.map((w) => w.totalEarned),
@@ -194,11 +201,36 @@ export const KpiRow = memo(function KpiRow({
       />
       <KpiCard
         variant="tax"
-        label="Tax withheld"
-        value={fmtAud(summary.taxWithheld)}
-        sub={`${summary.totalEarned > 0 ? ((summary.taxWithheld / summary.totalEarned) * 100).toFixed(1) : "0.0"}% of gross`}
+        label={summary.taxRefunded > 0 ? "Tax after refunds" : "Tax withheld"}
+        value={fmtAud(summary.netTax)}
+        sub={
+          summary.taxRefunded > 0
+            ? `${fmtAudWhole(summary.taxWithheld)} withheld − ${fmtAudWhole(summary.taxRefunded)} refunded`
+            : `${summary.totalEarned > 0 ? ((summary.taxWithheld / summary.totalEarned) * 100).toFixed(1) : "0.0"}% of gross`
+        }
         spark={taxSpark}
         sparkColor={palette.coral}
+        action={
+          <Tooltip title="Record or manage tax refunds">
+            <Button
+              size="small"
+              onClick={onRecordRefund}
+              startIcon={<AddRoundedIcon sx={{ fontSize: 14 }} />}
+              sx={{
+                minWidth: 0,
+                px: 0.85,
+                py: 0.1,
+                fontSize: 11,
+                fontWeight: 600,
+                color: palette.textMute,
+                "& .MuiButton-startIcon": { mr: 0.4 },
+                "&:hover": { color: palette.mint, backgroundColor: palette.mintWash },
+              }}
+            >
+              Refund
+            </Button>
+          </Tooltip>
+        }
       />
       <KpiCard
         variant="hours"
